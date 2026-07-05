@@ -198,7 +198,7 @@
       <p class="lead">Точки для вибору між двома районами. Для довгих хайків маркер стоїть біля старту або головної логістичної точки.</p>
 
       <div class="legend">
-        <div class="legend-item"><span class="dot" style="background: var(--base)"></span>Бази: Bergen, Evanger, потенційні робочі бази</div>
+        <div class="legend-item"><span class="dot" style="background: var(--base)"></span>Бази: Bergen, Evanger, потенційні й backup-бази</div>
         <div class="legend-item"><span class="dot" style="background: var(--must)"></span>★ Точно хочемо: overnight Trolltunga</div>
         <div class="legend-item"><span class="dot" style="background: var(--r1)"></span>Район 1: Hardanger / Odda / Folgefonna</div>
         <div class="legend-item"><span class="dot" style="background: var(--r2)"></span>Район 2: Voss / Aurland / Nærøyfjord</div>
@@ -252,14 +252,42 @@
         id: "V",
         title: "Voss",
         coords: [60.6297, 6.4147],
-        note: "Практична робоча база: більше сервісів, їжі й житла. Менше фіордового вау, але зручно.",
+        note: "Практичний fallback для району 2: більше сервісів, їжі й житла. До Gudvangen/Jordalen близько 50 хв, до Aurland/Prest довше.",
         url: "https://www.visitvoss.no/en/accommodation-in-voss"
+      },
+      {
+        id: "M",
+        title: "Myrkdalen",
+        coords: [60.8420, 6.4666],
+        note: "Backup-база з більшою cabin/resort логікою. Добре для Nærøyfjord, Rimstigen і Bakkanosi/Jordalen; довше до Aurlandsdalen і Prest.",
+        url: "https://www.visitvoss.no/en/myrkdalen-hotel-voss"
+      },
+      {
+        id: "Op",
+        title: "Oppheim / Vinje / Vossestrand",
+        coords: [60.7925, 6.5755],
+        note: "Найрозумніший коридор для пошуку житла, якщо Aurland/Flåm забиті: між Voss і Gudvangen, ближче до Nærøyfjord без втрати доступу до Voss.",
+        url: "https://www.google.com/maps/search/Oppheim+Vinje+Vossestrand+Norway+accommodation"
+      },
+      {
+        id: "S",
+        title: "Stalheim",
+        coords: [60.8363, 6.6799],
+        note: "Найкращий дикий compromise для району 2, якщо знайдеться житло: дуже близько до Gudvangen, Rimstigen і Jordalen/Bakkanosi. Менше сервісів.",
+        url: "https://www.google.com/maps/search/Stalheim+Norway+accommodation"
+      },
+      {
+        id: "G",
+        title: "Gudvangen",
+        coords: [60.8791, 6.8396],
+        note: "Ідеально для Nærøyfjord, kayaking і Rimstigen, але житла мало. Брати, якщо раптом щось живе знайдеться.",
+        url: "https://www.google.com/maps/search/Gudvangen+Norway+accommodation"
       },
       {
         id: "A",
         title: "Aurland",
         coords: [60.9066, 7.1874],
-        note: "Мій перший вибір для району 2: близько до Aurlandsdalen, Prest, Stegastein і Nærøyfjord.",
+        note: "Мій перший вибір для району 2, якщо є житло: близько до Aurlandsdalen, Prest, Stegastein і Nærøyfjord.",
         url: "https://en.sognefjord.no/fjord-villages/aurland/"
       },
       {
@@ -275,6 +303,13 @@
         coords: [60.8615, 7.1130],
         note: "Найзручніша, але найтуристичніша база району 2. Добре для логістики, гірше для тиші.",
         url: "https://en.sognefjord.no/fjord-villages/flam/"
+      },
+      {
+        id: "L",
+        title: "Lærdalsøyri / Lærdal",
+        coords: [61.0988, 7.4825],
+        note: "Overflow для Aurland-side: добре для Prest і Aurlandsdalen через тунель, гірше для Gudvangen/Bakkanosi і найдовше назад до Bergen.",
+        url: "https://www.google.com/maps/search/L%C3%A6rdals%C3%B8yri+Norway+accommodation"
       },
       {
         id: "K",
