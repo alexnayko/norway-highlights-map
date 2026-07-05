@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Norway Highlights Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --ink: #1d2426;
+      --muted: #64706f;
+      --r1: #d85b4a;
+      --r2: #216f8c;
+      --base: #3e7b4d;
+      --line1: rgba(216, 91, 74, 0.34);
+      --line2: rgba(33, 111, 140, 0.34);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .shell {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(320px, 390px) 1fr;
+    }
+
+    aside {
+      padding: 22px;
+      overflow: auto;
+      border-right: 1px solid rgba(29, 36, 38, 0.13);
+      background: #fffaf1;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .legend {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 18px;
+      font-size: 14px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .section {
+      margin: 20px 0 0;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .item {
+      border-top: 1px solid rgba(29, 36, 38, 0.12);
+      padding: 11px 0;
+    }
+
+    .item button {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      padding: 0;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+    }
+
+    .item-title {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .item-title span:first-child {
+      flex: 0 0 auto;
+      min-width: 22px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .item p {
+      margin: 5px 0 0 30px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.36;
+    }
+
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+
+    .marker {
+      width: 31px;
+      height: 31px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 800;
+      font-size: 13px;
+      border: 2px solid white;
+      box-shadow: 0 4px 12px rgba(29, 36, 38, 0.28);
+    }
+
+    .marker.base {
+      width: 34px;
+      height: 34px;
+      font-size: 15px;
+    }
+
+    .popup h3 {
+      margin: 0 0 5px;
+      font-size: 16px;
+    }
+
+    .popup p {
+      margin: 0 0 8px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .popup a {
+      color: #155c74;
+      font-weight: 700;
+    }
+
+    @media (max-width: 820px) {
+      .shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: 42vh 58vh;
+      }
+
+      aside {
+        order: 2;
+        border-right: 0;
+        border-top: 1px solid rgba(29, 36, 38, 0.13);
+      }
+
+      #map {
+        height: 42vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <aside>
+      <h1>Norway highlights</h1>
+      <p class="lead">Точки для вибору між двома районами. Для довгих хайків маркер стоїть біля старту або головної логістичної точки.</p>
+
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background: var(--base)"></span>Бази: Bergen, Evanger, потенційні робочі бази</div>
+        <div class="legend-item"><span class="dot" style="background: var(--r1)"></span>Район 1: Hardanger / Odda / Folgefonna</div>
+        <div class="legend-item"><span class="dot" style="background: var(--r2)"></span>Район 2: Voss / Aurland / Nærøyfjord</div>
+      </div>
+
+      <section class="section" id="base-list">
+        <h2>Бази</h2>
+      </section>
+
+      <section class="section" id="region-one-list">
+        <h2>Район 1</h2>
+      </section>
+
+      <section class="section" id="region-two-list">
+        <h2>Район 2</h2>
+      </section>
+    </aside>
+
+    <div id="map"></div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    const colors = {
+      base: "#3e7b4d",
+      region1: "#d85b4a",
+      region2: "#216f8c"
+    };
+
+    const bases = [
+      {
+        id: "B",
+        title: "Bergen",
+        coords: [60.3913, 5.3221],
+        note: "Приліт, перша ніч і виліт назад.",
+        url: "https://en.visitbergen.com/"
+      },
+      {
+        id: "E",
+        title: "Evanger",
+        coords: [60.6475, 6.1118],
+        note: "Ваша робоча база. Добра точка між Voss, Hardanger і Aurland.",
+        url: "https://www.visitvoss.no/en"
+      },
+      {
+        id: "V",
+        title: "Voss",
+        coords: [60.6297, 6.4147],
+        note: "Практична робоча база: більше сервісів, їжі й житла. Менше фіордового вау, але зручно.",
+        url: "https://www.visitvoss.no/en/accommodation-in-voss"
+      },
+      {
+        id: "A",
+        title: "Aurland",
+        coords: [60.9066, 7.1874],
+        note: "Мій перший вибір для району 2: близько до Aurlandsdalen, Prest, Stegastein і Nærøyfjord.",
+        url: "https://en.sognefjord.no/fjord-villages/aurland/"
+      },
+      {
+        id: "U",
+        title: "Undredal",
+        coords: [60.9509, 7.1030],
+        note: "Тиха фіордова база, якщо знайдете красиву кабіну з нормальним Wi-Fi. Менше сервісів.",
+        url: "https://www.fjordnorway.com/en/attractions/undredal-sognefjord"
+      },
+      {
+        id: "F",
+        title: "Flåm",
+        coords: [60.8615, 7.1130],
+        note: "Найзручніша, але найтуристичніша база району 2. Добре для логістики, гірше для тиші.",
+        url: "https://en.sognefjord.no/fjord-villages/flam/"
+      },
+      {
+        id: "K",
+        title: "Lofthus / Kinsarvik",
+        coords: [60.3540, 6.7000],
+        note: "Мій перший вибір для району 1: Dronningstien, Husedalen, Stavali, Oksen і Hardangerfjord без постійних переїздів.",
+        url: "https://hardangerfjord.com/en/ullensvang"
+      },
+      {
+        id: "O",
+        title: "Odda / Tyssedal",
+        coords: [60.0698, 6.5451],
+        note: "Краща база, якщо головне Trolltunga, via ferrata або Buarbreen. Практичніше, але менш камерно.",
+        url: "https://www.trolltunga.com/en/parking-and-transport/travel-to-odda-and-trolltunga"
+      },
+      {
+        id: "J",
+        title: "Jondal",
+        coords: [60.2760, 6.2523],
+        note: "Брати як базу тільки якщо Folgefonna Blue Ice Hike це центральна штука району 1.",
+        url: "https://www.folgefonni.no/tours/blue-ice-hike"
+      }
+    ];
+
+    const regionOne = [
+      {
+        id: "1",
+        title: "Folgefonna Blue Ice Hike",
+        coords: [60.2266, 6.4309],
+        note: "Guided glacier hike біля Jondal. Найсильніша льодова штука району 1.",
+        url: "https://www.folgefonni.no/tours/blue-ice-hike"
+      },
+      {
+        id: "2",
+        title: "Dronningstien / Queen Sonja’s Trail",
+        coords: [60.3538, 6.6924],
+        note: "Великий ridge hike між Kinsarvik і Lofthus над Sørfjord. Маркер стоїть у зоні маршруту, не на одному trailhead.",
+        url: "https://hardangerfjord.com/en/attractions/hm-queen-sonjas-panoramic-hiking-trail-1038523"
+      },
+      {
+        id: "3",
+        title: "Husedalen waterfalls",
+        coords: [60.3762, 6.7227],
+        note: "Чотири водоспади з Kinsarvik. Це trailhead/valley point, добрий як day hike.",
+        url: "https://hardangerfjord.com/en/attractions/four-beautiful-waterfalls-husedalen-valley-970393"
+      },
+      {
+        id: "3b",
+        title: "Stavali DNT cabin",
+        coords: [60.3496, 6.9114],
+        note: "Cabin-версія Husedalen: гірська DNT lodge на Hardangervidda, вже не просто коротка прогулянка.",
+        url: "https://ut.no/hytte/101368/stavali-turisthytte"
+      },
+      {
+        id: "4",
+        title: "Trolltunga / Via Ferrata",
+        coords: [60.1240, 6.7416],
+        note: "Маркер на самій Trolltunga. Старт логістично з P2/P3 біля Skjeggedal/Tyssedal.",
+        url: "https://www.trolltunga.com/en/plan-your-hike/via-ferrata"
+      },
+      {
+        id: "5",
+        title: "Buarbreen / Buer valley",
+        coords: [60.0446, 6.4773],
+        note: "Коротший драматичний glacier-edge hike з Buer valley біля Odda. Маркер стоїть біля паркінгу/старту.",
+        url: "https://folgefonna.info/en/folgefonnas-many-attractions/buardalen-a-hike-to-the-edge-of-the-glacier/"
+      },
+      {
+        id: "6",
+        title: "Oksen",
+        coords: [60.4622, 6.7444],
+        note: "Steep summit з великим видом на кілька рукавів Hardangerfjord.",
+        url: "https://hardangerfjord.com/en/attractions/oksen-1075583"
+      }
+    ];
+
+    const regionTwo = [
+      {
+        id: "1",
+        title: "Aurlandsdalen, Østerbø to Vassbygdi",
+        coords: [60.8285, 7.5050],
+        note: "Головний великий hike району 2. Маркер стоїть біля Østerbø, старту класичного маршруту вниз.",
+        url: "https://en.sognefjord.no/aurlandsdalen-norways-most-beautiful-hike/"
+      },
+      {
+        id: "2",
+        title: "Nærøyfjord kayak, Gudvangen",
+        coords: [60.8789, 6.8407],
+        note: "Фіорд з води, без cruise-conveyor вайбу.",
+        url: "https://www.fjordtours.com/en/norway/things-to-do/outdoor-activities/water-activities/kayaking/sea-kayak-daytrip-gudvangen"
+      },
+      {
+        id: "3",
+        title: "Rimstigen",
+        coords: [60.9242, 6.8576],
+        note: "Крутий старий trail над Nærøyfjord, старт біля Bakka/Tufte. Не для мокрої погоди.",
+        url: "https://www.fjords.com/en/western-norwegian-fjords/fjord-guide/aurlandsfjord-naeroyfjord/gudvangen/rimstigen/"
+      },
+      {
+        id: "4",
+        title: "Bakkanosi",
+        coords: [60.9119, 6.8453],
+        note: "Маркер біля summit/viewpoint. Стартують зазвичай з Jordalen, робити тільки в ясну погоду.",
+        url: "https://www.visitvoss.no/en/jordalen-og-bakkanosi"
+      },
+      {
+        id: "5",
+        title: "Prest + Aurlandsfjellet",
+        coords: [60.9362, 7.2410],
+        note: "Коротший high-reward hike над Aurlandsfjord. Маркер на Prest, старт логістично з Aurlandsfjellet road.",
+        url: "https://www.nasjonaleturistveger.no/en/routes/aurlandsfjellet/"
+      },
+      {
+        id: "6",
+        title: "Grindaflethytta DNT route",
+        coords: [60.8435, 6.9155],
+        note: "Cabin experience у районі 2: self-service hut і гірський маршрут у бік Flåm.",
+        url: "https://ut.no/hytte/10363/grindaflethytta"
+      }
+    ];
+
+    const map = L.map("map", {
+      scrollWheelZoom: true,
+      zoomControl: true
+    }).setView([60.58, 6.45], 8);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    const groups = {
+      bases: L.layerGroup().addTo(map),
+      region1: L.layerGroup().addTo(map),
+      region2: L.layerGroup().addTo(map)
+    };
+
+    function markerIcon(label, color, isBase = false) {
+      return L.divIcon({
+        className: "",
+        html: `<div class="marker ${isBase ? "base" : ""}" style="background:${color}">${label}</div>`,
+        iconSize: isBase ? [34, 34] : [31, 31],
+        iconAnchor: isBase ? [17, 17] : [15, 15],
+        popupAnchor: [0, -14]
+      });
+    }
+
+    function popupHtml(point) {
+      return `
+        <div class="popup">
+          <h3>${point.title}</h3>
+          <p>${point.note}</p>
+          <a href="${point.url}" target="_blank" rel="noreferrer">Open link</a>
+        </div>
+      `;
+    }
+
+    const markerByKey = new Map();
+
+    function addPoint(point, groupName, color, isBase = false) {
+      const marker = L.marker(point.coords, {
+        icon: markerIcon(point.id, color, isBase)
+      }).bindPopup(popupHtml(point), { maxWidth: 280 });
+      marker.addTo(groups[groupName]);
+      markerByKey.set(`${groupName}-${point.id}`, marker);
+      return marker;
+    }
+
+    function addList(sectionId, points, groupName) {
+      const section = document.getElementById(sectionId);
+      points.forEach((point) => {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.innerHTML = `
+          <button type="button" data-key="${groupName}-${point.id}">
+            <div class="item-title"><span>${point.id}</span><span>${point.title}</span></div>
+            <p>${point.note}</p>
+          </button>
+        `;
+        section.appendChild(item);
+      });
+    }
+
+    bases.forEach((p) => addPoint(p, "bases", colors.base, true));
+    regionOne.forEach((p) => addPoint(p, "region1", colors.region1));
+    regionTwo.forEach((p) => addPoint(p, "region2", colors.region2));
+
+    addList("base-list", bases, "bases");
+    addList("region-one-list", regionOne, "region1");
+    addList("region-two-list", regionTwo, "region2");
+
+    document.querySelectorAll("button[data-key]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const marker = markerByKey.get(button.dataset.key);
+        if (!marker) return;
+        map.flyTo(marker.getLatLng(), 10, { duration: 0.45 });
+        setTimeout(() => marker.openPopup(), 460);
+      });
+    });
+
+    const regionOneHull = [
+      [60.4622, 6.7444],
+      [60.3496, 6.9114],
+      [60.3762, 6.7227],
+      [60.2266, 6.4309],
+      [60.0446, 6.4773],
+      [60.1240, 6.7416],
+      [60.3538, 6.6924]
+    ];
+
+    const regionTwoHull = [
+      [60.8789, 6.8407],
+      [60.9242, 6.8576],
+      [60.9119, 6.8453],
+      [60.9362, 7.2410],
+      [60.8285, 7.5050],
+      [60.8435, 6.9155]
+    ];
+
+    L.polygon(regionOneHull, {
+      color: colors.region1,
+      fillColor: colors.region1,
+      fillOpacity: 0.08,
+      weight: 2
+    }).addTo(map);
+
+    L.polygon(regionTwoHull, {
+      color: colors.region2,
+      fillColor: colors.region2,
+      fillOpacity: 0.08,
+      weight: 2
+    }).addTo(map);
+
+    const allMarkers = [...bases, ...regionOne, ...regionTwo].map((p) => p.coords);
+    map.fitBounds(allMarkers, { padding: [28, 28] });
+
+    window.addEventListener("load", () => {
+      setTimeout(() => map.invalidateSize(), 250);
+    });
+  </script>
+</body>
+</html>
