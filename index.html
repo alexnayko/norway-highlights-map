@@ -14,6 +14,7 @@
       --r1: #d85b4a;
       --r2: #216f8c;
       --base: #3e7b4d;
+      --must: #f1b33b;
       --line1: rgba(216, 91, 74, 0.34);
       --line2: rgba(33, 111, 140, 0.34);
     }
@@ -148,6 +149,14 @@
       font-size: 15px;
     }
 
+    .marker.star {
+      width: 39px;
+      height: 39px;
+      color: #1d2426;
+      font-size: 22px;
+      line-height: 1;
+    }
+
     .popup h3 {
       margin: 0 0 5px;
       font-size: 16px;
@@ -190,9 +199,14 @@
 
       <div class="legend">
         <div class="legend-item"><span class="dot" style="background: var(--base)"></span>Бази: Bergen, Evanger, потенційні робочі бази</div>
+        <div class="legend-item"><span class="dot" style="background: var(--must)"></span>★ Точно хочемо: overnight Trolltunga</div>
         <div class="legend-item"><span class="dot" style="background: var(--r1)"></span>Район 1: Hardanger / Odda / Folgefonna</div>
         <div class="legend-item"><span class="dot" style="background: var(--r2)"></span>Район 2: Voss / Aurland / Nærøyfjord</div>
       </div>
+
+      <section class="section" id="must-list">
+        <h2>Точно хочемо</h2>
+      </section>
 
       <section class="section" id="base-list">
         <h2>Бази</h2>
@@ -214,6 +228,7 @@
   <script>
     const colors = {
       base: "#3e7b4d",
+      must: "#f1b33b",
       region1: "#d85b4a",
       region2: "#216f8c"
     };
@@ -281,6 +296,16 @@
         coords: [60.2760, 6.2523],
         note: "Брати як базу тільки якщо Folgefonna Blue Ice Hike це центральна штука району 1.",
         url: "https://www.folgefonni.no/tours/blue-ice-hike"
+      }
+    ];
+
+    const mustDo = [
+      {
+        id: "★",
+        title: "Trolltunga Sunset-Sunrise overnight",
+        coords: [60.13296, 6.62724],
+        note: "Офіційний meet-up: Trolltunga Active Base, Skjeggedal 20 / P2. Далі shuttle до P3; dome camp приблизно за 3 км до Trolltunga.",
+        url: "https://www.trolltunga-active.com/locations/trolltunga-sunsetsunrise"
       }
     ];
 
@@ -394,15 +419,16 @@
     const groups = {
       bases: L.layerGroup().addTo(map),
       region1: L.layerGroup().addTo(map),
-      region2: L.layerGroup().addTo(map)
+      region2: L.layerGroup().addTo(map),
+      must: L.layerGroup().addTo(map)
     };
 
-    function markerIcon(label, color, isBase = false) {
+    function markerIcon(label, color, isBase = false, isStar = false) {
       return L.divIcon({
         className: "",
-        html: `<div class="marker ${isBase ? "base" : ""}" style="background:${color}">${label}</div>`,
-        iconSize: isBase ? [34, 34] : [31, 31],
-        iconAnchor: isBase ? [17, 17] : [15, 15],
+        html: `<div class="marker ${isBase ? "base" : ""} ${isStar ? "star" : ""}" style="background:${color}">${label}</div>`,
+        iconSize: isStar ? [39, 39] : (isBase ? [34, 34] : [31, 31]),
+        iconAnchor: isStar ? [19, 19] : (isBase ? [17, 17] : [15, 15]),
         popupAnchor: [0, -14]
       });
     }
@@ -419,9 +445,9 @@
 
     const markerByKey = new Map();
 
-    function addPoint(point, groupName, color, isBase = false) {
+    function addPoint(point, groupName, color, isBase = false, isStar = false) {
       const marker = L.marker(point.coords, {
-        icon: markerIcon(point.id, color, isBase)
+        icon: markerIcon(point.id, color, isBase, isStar)
       }).bindPopup(popupHtml(point), { maxWidth: 280 });
       marker.addTo(groups[groupName]);
       markerByKey.set(`${groupName}-${point.id}`, marker);
@@ -444,9 +470,11 @@
     }
 
     bases.forEach((p) => addPoint(p, "bases", colors.base, true));
+    mustDo.forEach((p) => addPoint(p, "must", colors.must, false, true));
     regionOne.forEach((p) => addPoint(p, "region1", colors.region1));
     regionTwo.forEach((p) => addPoint(p, "region2", colors.region2));
 
+    addList("must-list", mustDo, "must");
     addList("base-list", bases, "bases");
     addList("region-one-list", regionOne, "region1");
     addList("region-two-list", regionTwo, "region2");
@@ -493,7 +521,7 @@
       weight: 2
     }).addTo(map);
 
-    const allMarkers = [...bases, ...regionOne, ...regionTwo].map((p) => p.coords);
+    const allMarkers = [...bases, ...mustDo, ...regionOne, ...regionTwo].map((p) => p.coords);
     map.fitBounds(allMarkers, { padding: [28, 28] });
 
     window.addEventListener("load", () => {
